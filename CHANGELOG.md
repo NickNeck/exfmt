@@ -3,8 +3,9 @@ Changelog
 
 ## Unreleased
 
-- Support for Elixir v1.4 and lower has been dropped. This enables the use of
-  new features added to the Elixir tokenizer and parser in v1.5.
+- exfmt now targets the unreleased master (v1.6) branch of the Elixir
+  compiler. This allows use of new Elixir parser features such as preservation
+  of sigil terminators, character literals and line numbers for AST literals.
 
 
 ## v0.3.0 - 2017-07-26

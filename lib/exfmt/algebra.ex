@@ -42,7 +42,7 @@ defmodule Exfmt.Algebra do
     | binary
 
   #
-  # Lifted from `Inspect.Algebra.doc_cons/1`
+  # Lifted from Elixir 1.4's `Inspect.Algebra.doc_cons/1`
   #
   @typep doc_cons :: {:doc_cons, t, t}
   defmacrop doc_cons(left, right) do
@@ -52,7 +52,7 @@ defmodule Exfmt.Algebra do
   end
 
   #
-  # Lifted from `Inspect.Algebra.doc_nest/1`
+  # Lifted from Elixir 1.4's `Inspect.Algebra.doc_nest/1`
   #
   # Modified to have accept `:current` value
   #
@@ -64,7 +64,7 @@ defmodule Exfmt.Algebra do
   end
 
   #
-  # Lifted from `Inspect.Algebra.doc_break/1`
+  # Lifted from Elixir 1.4's `Inspect.Algebra.doc_break/1`
   #
   @typep doc_break :: {:doc_break, binary}
   defmacrop doc_break(break) do
@@ -74,7 +74,7 @@ defmodule Exfmt.Algebra do
   end
 
   #
-  # Lifted from `Inspect.Algebra.doc_group/1`
+  # Lifted from Elixir 1.4's `Inspect.Algebra.doc_group/1`
   #
   @typep doc_group :: {:doc_group, t}
   defmacrop doc_group(group) do
@@ -84,7 +84,7 @@ defmodule Exfmt.Algebra do
   end
 
   #
-  # Lifted from `Inspect.Algebra.is_doc/1`
+  # Lifted from Elixir 1.4's `Inspect.Algebra.is_doc/1`
   #
   defmacrop is_doc(doc) do
     if Macro.Env.in_guard?(__CALLER__) do
@@ -101,7 +101,7 @@ defmodule Exfmt.Algebra do
   end
 
   #
-  # Lifted from `Inspect.Algebra.do_is_doc/1`, and then
+  # Lifted from Elixir 1.4's `Inspect.Algebra.do_is_doc/1`, and then
   # extended with the new Algebra.
   #
   defp do_is_doc(doc) do
@@ -114,7 +114,6 @@ defmodule Exfmt.Algebra do
     end
   end
 
-
   #
   # Public interface to algebra
   #
@@ -123,10 +122,8 @@ defmodule Exfmt.Algebra do
   defdelegate break(), to: I.Algebra
   defdelegate break(doc), to: I.Algebra
   defdelegate fold_doc(docs, fun), to: I.Algebra
-  defdelegate group(doc), to: I.Algebra
   defdelegate line(doc1, doc2), to: I.Algebra
   defdelegate space(doc1, doc2), to: I.Algebra
-  defdelegate surround(left, doc, right), to: I.Algebra
 
 
   @doc """
@@ -264,6 +261,61 @@ defmodule Exfmt.Algebra do
 
   def nest(doc, level) when is_doc(doc) and is_integer(level) and level > 0 do
     doc_nest(doc, level)
+  end
+
+
+  #
+  # Lifted from Elixir 1.4's `Inspect.Algebra.group/1`
+  #
+  @doc ~S"""
+  Returns a group containing the specified document `doc`.
+  Documents in a group are attempted to be rendered together
+  to the best of the renderer ability.
+  ## Examples
+      iex> doc = Inspect.Algebra.group(
+      ...>   Inspect.Algebra.concat(
+      ...>     Inspect.Algebra.group(
+      ...>       Inspect.Algebra.concat(
+      ...>         "Hello,",
+      ...>         Inspect.Algebra.concat(
+      ...>           Inspect.Algebra.break,
+      ...>           "A"
+      ...>         )
+      ...>       )
+      ...>     ),
+      ...>     Inspect.Algebra.concat(
+      ...>       Inspect.Algebra.break,
+      ...>       "B"
+      ...>     )
+      ...> ))
+      iex> Inspect.Algebra.format(doc, 80)
+      ["Hello,", " ", "A", " ", "B"]
+      iex> Inspect.Algebra.format(doc, 6)
+      ["Hello,", "\n", "A", " ", "B"]
+  """
+  @spec group(t) :: doc_group
+  def group(doc) when is_doc(doc) do
+    doc_group(doc)
+  end
+
+
+  @nesting 1
+  #
+  # Lifted from Elixir 1.4's `Inspect.Algebra.surround/3`
+  #
+  @doc ~S"""
+  Surrounds a document with characters.
+  Puts the given document `doc` between the `left` and `right` documents enclosing
+  and nesting it. The document is marked as a group, to show the maximum as
+  possible concisely together.
+  ## Examples
+      iex> doc = Inspect.Algebra.surround("[", Inspect.Algebra.glue("a", "b"), "]")
+      iex> Inspect.Algebra.format(doc, 3)
+      ["[", "a", "\n ", "b", "]"]
+  """
+  @spec surround(t, t, t) :: t
+  def surround(left, doc, right) when is_doc(left) and is_doc(doc) and is_doc(right) do
+    group(concat(left, concat(nest(doc, @nesting), right)))
   end
 
   #
